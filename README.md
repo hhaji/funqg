@@ -1,6 +1,6 @@
 # FunQG: Molecular Representation Learning Via Quotient Graphs
 
-**FunQG** is a novel graph coarsening framework specific to molecular data, utilizing functional groups based on a graph-theoretic concept called quotient graph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. By experiments, this method significantly outperforms previous baselines on various datasets, besides its low computational complexity.
+**FunQG** is a novel graph coarsening framework specific to molecular data, utilizing **Fun**ctional groups based on a graph-theoretic concept called **Q**uotient **G**raph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. By experiments, this method significantly outperforms previous baselines on various datasets, besides its low computational complexity.
 
 <p align="center">
    <img  src=https://github.com/zahta/funqg/blob/main/data/funqg.png?raw=true width="1000"/>
