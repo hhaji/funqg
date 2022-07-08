@@ -71,8 +71,8 @@ usage: train_eval_run.py [-h]
 ```
 
 ## Authors
-- **Hossein Hajiabolhassan** - [hhaji](https://github.com/hhaji)
 - **Zahra Taheri** - [zahta](https://github.com/zahta)
+- **Hossein Hajiabolhassan** - [hhaji](https://github.com/hhaji)
 
 ## Co-Authors
 - **Ali Hojatnia** - [alihojatnia](https://github.com/alihojatnia)
