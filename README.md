@@ -10,7 +10,7 @@
 
 
 ## Requirements 
-The resulting graphs of the FunQG are much smaller than the molecular graphs (Supplementary Section D). Therefore, a GNN model architecture requires much less depth in working with resulting graphs compared to working with molecular graphs. Thus, using FunQG reduces the computational complexity compared to working with molecular graphs. We utilize 1 *Intel (R) Xeon (R) E5-2699 v4 @ 2.20GHz* CPU for training, testing, and hyperparameter tuning of the FunQG-DMPNN on each dataset in a relatively short time. So, training the models is very fast and is possible on a standard laptop with only one CPU.
+The resulting graphs of the FunQG are much smaller than the molecular graphs. Therefore, a GNN model architecture requires much less depth in working with resulting graphs compared to working with molecular graphs. Thus, using FunQG reduces the computational complexity compared to working with molecular graphs. We utilize 1 *Intel (R) Xeon (R) E5-2699 v4 @ 2.20GHz* CPU for training, testing, and hyperparameter tuning of the FunQG-DMPNN on each dataset in a relatively short time. So, training the models is very fast and is possible on a standard laptop with only one CPU.
 
 ```
 PyTorch >= 1.9.0
