@@ -19,7 +19,7 @@ Ray Tune >= 1.9.0 (for hyperparameters optimization)
 ## How to Run
 
 ```sh
-git clone git clone https://github.com/hhaji/funqg.git
+git clone https://github.com/hhaji/funqg.git
 cd ./funqg
 ```
 
