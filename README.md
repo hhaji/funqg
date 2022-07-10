@@ -16,7 +16,7 @@ DGL >= 0.6.0
 Ray Tune >= 1.9.0 (for hyperparameters optimization)
 ```
 
-## How to use
+## How to Run
 
 ```sh
 git clone git clone https://github.com/hhaji/funqg.git
