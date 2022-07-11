@@ -38,6 +38,7 @@ usage: train_eval_run.py [-h]
   --scaler_regression   Whether to use Standard scaler for regression tasks
   --division            scaffold, random
   --batch_size          Batch size
+  --evaluate_saved      Whether just to compute test scores for the best-saved models or train models first  
   --n_splits            Number of splits for CV
   --num_epochs          Number of epochs
   --device              cpu, cuda
