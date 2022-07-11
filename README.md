@@ -1,7 +1,4 @@
-<div align="center">
-
 # FunQG: Molecular Representation Learning Via Quotient Graphs
-<div/>
 
 <div align="justify">
    
