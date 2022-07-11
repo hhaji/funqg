@@ -26,10 +26,11 @@ git clone https://github.com/hhaji/funqg.git
 cd ./funqg
 ```
 
-### Training And Evaluation Example
+### Training And/Or Evaluation Example
 ```sh
 python train_eval_run.py --name_data <dataset> --current_dir <path> --config <config>
-
+```
+```sh
 usage: train_eval_run.py [-h] 
   --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo
   --current_dir         Current directory containing codes and data folder
@@ -50,7 +51,8 @@ usage: train_eval_run.py [-h]
 ### Hyperparameters Optimization Example
 ```sh
 python hyper_tuning_run.py --name_data <dataset> --current_dir <path>
-
+```
+```sh
 usage: hyper_tuning_run.py [-h] 
   --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo
   --current_dir         Current directory containing codes and data folder
