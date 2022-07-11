@@ -5,9 +5,9 @@
 **FunQG** is a novel graph coarsening framework specific to molecular data, utilizing **Fun**ctional groups based on a graph-theoretic concept called **Q**uotient **G**raph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. By experiments, this method significantly outperforms previous baselines on various datasets, besides its low computational complexity.
 
 <p align="center">
-   <img  src=https://github.com/zahta/funqg/blob/main/data/funqg.png?raw=true width="1000"/>
-<b>The overview of FunQG framework.</b> The left figure (A) illustrates the application of the FunQG framework to a molecule to find its corresponding coarsened graph, named molecular quotient graph. The right figure (B) shows the application of a GNN architecture to the graph obtained from the FunQG to predict the property of the molecule.   
+   <img  src=https://github.com/zahta/funqg/blob/main/data/funqg.png?raw=true width="1000"/>  
 </p>
+<b>The overview of FunQG framework.</b> The left figure (A) illustrates the application of the FunQG framework to a molecule to find its corresponding coarsened graph, named molecular quotient graph. The right figure (B) shows the application of a GNN architecture to the graph obtained from the FunQG to predict the property of the molecule. 
 
 ## Requirements 
 The resulting graphs of the FunQG are much smaller than the molecular graphs. Therefore, a GNN model architecture requires much less depth in working with resulting graphs compared to working with molecular graphs. Thus, using FunQG reduces the computational complexity compared to working with molecular graphs. We utilize one *Intel (R) Xeon (R) E5-2699 v4 @ 2.20GHz* CPU for training, testing, and hyperparameter tuning of a GNN model on each dataset in a relatively short time. Therefore, training the models is very fast and is possible on a standard laptop with only one CPU.
@@ -38,6 +38,7 @@ usage: train_eval_run.py [-h]
   --scaler_regression   Whether to use Standard scaler for regression tasks
   --division            scaffold, random
   --batch_size          Batch size
+  --evaluate_saved      Whether just to compute test scores for the best-saved models or train models first  
   --n_splits            Number of splits for CV
   --num_epochs          Number of epochs
   --device              cpu, cuda
@@ -77,5 +78,4 @@ usage: hyper_tuning_run.py [-h]
 - **Yavar Taheri Yeganeh** - [YavarYeganeh](https://github.com/YavarYeganeh)
 
 ## Citation
-
 
