@@ -30,6 +30,7 @@ class DGLDatasetReg(torch.utils.data.Dataset):
             self.masks = train_labels_masks_globals["masks"].view(num_graphs,-1)
             self.globals = train_labels_masks_globals["globals"].view(num_graphs,-1)
             self.transform = transform
+            self.scaler_regression = scaler_regression
     def scaler_method(self):
         if self.train:
             scaler = preprocessing.StandardScaler().fit(self.labels) 
@@ -38,7 +39,7 @@ class DGLDatasetReg(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.data_set)
     def __getitem__(self, idx):       
-        if scaler_regression:
+        if self.scaler_regression:
             """ With Scaler"""
             return  self.data_set[idx], torch.tensor(self.scaler.transform(self.labels)[idx]).float(), self.masks[idx], self.globals[idx]
         else:
@@ -54,6 +55,7 @@ class TuneDatasetReg(torch.utils.data.Dataset):
             self.labels = labels
             self.masks = masks
             self.globals = globals
+            self.scaler_regression = scaler_regression
     def scaler_method(self):
         if self.train:
             scaler = preprocessing.StandardScaler().fit(self.labels) 
@@ -62,7 +64,7 @@ class TuneDatasetReg(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.data_set)
     def __getitem__(self, idx):        
-        if scaler_regression:
+        if self.scaler_regression:
             """ With Scaler"""
             return  self.data_set[idx], torch.tensor(self.scaler.transform(self.labels)[idx]).float(), self.masks[idx], self.globals[idx]
         else:

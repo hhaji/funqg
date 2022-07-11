@@ -1,5 +1,6 @@
 
-"""Trainable Class for Hyperparameters Optimization with Ray Tune"""
+
+""" Utils for Hyperparameters Optimization with Ray Tune """
 
 import os
 import shutil
@@ -10,23 +11,19 @@ import torch
 import torch.nn as nn
 import random 
 import numpy as np
+
+import arguments
 from gnn import GNN
 from utils import compute_score, loss_func 
 import copy
 from torch.utils.data import DataLoader
-from sklearn.model_selection import KFold
-import arguments
 
 from ray.tune.suggest.hyperopt import HyperOptSearch
 from ray.tune.suggest.optuna import OptunaSearch  
-from ray.tune.suggest.dragonfly import DragonflySearch
-from ray.tune.suggest.bayesopt import BayesOptSearch
 from ray.tune.schedulers.hb_bohb import HyperBandForBOHB
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.schedulers import MedianStoppingRule
-from ray.tune.schedulers import PopulationBasedTraining
 from ray.tune.suggest.bohb import TuneBOHB
-from ray.tune.suggest.basic_variant import BasicVariantGenerator
 from ray.tune.suggest import ConcurrencyLimiter
 
 def max_norm(model, max_norm_val):
@@ -211,25 +208,6 @@ class TrainableCV(tune.Trainable):
         for fold_idx in range(self.n_splits):
             self.model[fold_idx].load_state_dict(checkpoint["model_state_dict_{}".format(fold_idx)])
             self.optimizer[fold_idx].load_state_dict(checkpoint["optimizer_state_{}".format(fold_idx)])
-   
-    # def reset_config(self, new_config):
-    #     del self.optimizer
-    #     self.optimizer = []                                                  
-    #     for fold_idx in range(self.n_splits):
-    #         self.optimizer.append(torch.optim.Adam(self.model[fold_idx].parameters(), lr = new_config.get("lr", 0.0001)))
-    #     return True        
-        
-    # def cleanup(self):
-    #     if self.step_trial< self.training_iter and name_search_alg!="bohb":
-    #         print("Remove terminated trainable!")
-    #         del self.model
-    #         del self.optimizer
-    #         del self.train_dataloader
-    #         del self.val_dataloader
-    #         print("Terminated directory:", self.logdir)
-    #         shutil.rmtree(self.logdir) 
-    #         del self.logdir
-
 
     
 """ Schedulers And Search Algorithms of Ray Tune for Hyperparameters Optimization """
@@ -268,14 +246,6 @@ def scheduler_fn(name_scheduler=None, training_iter=None, mode_ray=None):
         metric="metric_ray",  
         mode=mode_ray)
 
-    if name_scheduler=="pbt":
-        scheduler = PopulationBasedTraining(
-        time_attr="training_iteration",
-        metric="metric_ray",  
-        mode=mode_ray,
-        perturbation_interval=10,  # every 10 `time_attr` units
-        )
-
     return scheduler
 
 def search_alg_fn(name_search_alg=None, max_concur=None, mode_ray=None):
@@ -303,27 +273,6 @@ def search_alg_fn(name_search_alg=None, max_concur=None, mode_ray=None):
         search_alg = OptunaSearch(
             metric="metric_ray", 
             mode=mode_ray,
-            )
-
-    if name_search_alg=="grid_random":
-        search_alg = BasicVariantGenerator(
-            max_concurrent = max_concur,
-            constant_grid_search = False, 
-            )
-
-    if name_search_alg=="dragonfly":
-        search_alg = DragonflySearch(
-            metric="metric_ray", 
-            mode=mode_ray,
-            optimizer="bandit", #[random, bandit, genetic]
-            # domain=euclidean, #[cartesian, euclidean]
-            )
-
-    if name_search_alg=="bayesopt":
-        search_alg = BayesOptSearch(
-            metric="metric_ray", 
-            mode=mode_ray,
-            random_search_steps = 60, 
             )
 
     return search_alg

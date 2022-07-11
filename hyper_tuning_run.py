@@ -1,42 +1,25 @@
 
 """Hyperparameters Optimization with Ray Tune"""
 
+import pandas as pd 
+from pandas import MultiIndex, Int16Dtype
 import os
 import random
 from datetime import datetime
-import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
 import dgl
 import dgl.function as fn
-import random 
-import pickle
-from sklearn import preprocessing 
-import sys
 import shutil
-import math 
-import cloudpickle
-import torch.optim as optim
-from torch.utils.data import DataLoader
 import ray
 from ray import tune
-from ray.tune.suggest.optuna import OptunaSearch  
-from ray.tune.schedulers.hb_bohb import HyperBandForBOHB
-from ray.tune.schedulers import AsyncHyperBandScheduler
-from ray.tune.suggest.bohb import TuneBOHB
-from ray.tune.schedulers import PopulationBasedTraining
 from ray.tune.suggest import ConcurrencyLimiter
-from ray.tune.suggest.hyperopt import HyperOptSearch
-from ray.tune.suggest.optuna import OptunaSearch
-from ray.tune.schedulers import PopulationBasedTraining
-from sklearn.model_selection import KFold
 from ray.tune.utils.placement_groups import PlacementGroupFactory
 
 import arguments
 from arguments import args
 from dataset import DGLDatasetClass, TuneDatasetReg
-from utils import loss_func, compute_score
 from utils_tune import TrainableCV, scheduler_fn, search_alg_fn
 
 """ Set Path"""
@@ -198,8 +181,8 @@ def main():
     analysis=tune.run(tune.with_parameters(TrainableCV, data=data, scaler=scaler, val_size=val_size, test_size=test_size,
                 global_size=arguments.global_size, num_tasks=arguments.num_tasks, global_feature=args.global_feature,
                 n_splits=args.n_splits, batch_size=args.batch_size, list_seeds=arguments.list_seeds,
-                task_type=arguments.task_type, training_iteration=args.training_iteration,
-                ray_tune=arguments.ray_tune, scaler_regression=args.scaler_regression, max_norm_status=args.max_norm_status),
+                task_type=arguments.task_type, training_iteration=args.training_iteration, ray_tune=arguments.ray_tune,
+                scaler_regression=args.scaler_regression, max_norm_status=args.max_norm_status),
                     local_dir= storage_name,
                     scheduler=scheduler,
                     search_alg=search_alg,
