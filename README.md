@@ -66,9 +66,9 @@ usage: hyper_tuning_run.py [-h]
   --num_samples         Number of times to sample from the hyperparameter space
   --training_iteration  Number of iteration of training for hyperparameter tuning
   --max_concurrent      Maximum number of trials to run concurrently
-  --num_cpus NUM_CPUS   Number of CPUs (CPU_core*Thread_per_core) for hyperparameter tuning
-  --num_gpus NUM_GPUS   Number of GPUs for hyperparameter tuning
-  --n_splits N_SPLITS   Number of splits for CV
+  --num_cpus            Number of CPUs (CPU_core*Thread_per_core) for hyperparameter tuning
+  --num_gpus            Number of GPUs for hyperparameter tuning
+  --n_splits            Number of splits for CV
 ```
 
 ## Authors
