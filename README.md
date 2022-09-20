@@ -80,4 +80,5 @@ usage: hyper_tuning_run.py [-h]
 - **Yavar Taheri Yeganeh** - [YavarYeganeh](https://github.com/YavarYeganeh)
 
 ## Citation
+Hajiabolhassan, H., Taheri, Z., Hojatnia, A., & Yeganeh, Y. T. (2022). FunQG: Molecular Representation Learning Via Quotient Graphs. arXiv. https://doi.org/10.48550/arXiv.2207.08597
 
