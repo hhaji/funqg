@@ -7,7 +7,7 @@
 <p align="center">
    <img  src=https://github.com/zahta/funqg/blob/main/data/funqg.png?raw=true width="1000"/>  
 </p>
-<b>The overview of FunQG framework.</b> The left figure (A) illustrates the application of the FunQG framework to a molecule to find its corresponding coarsened graph, named molecular quotient graph. The right figure (B) shows the application of a GNN architecture to the graph obtained from the FunQG to predict the property of the molecule. 
+<b>The overview of FunQG framework.</b> The left figure (A) illustrates the application of the FunQG framework to a molecule to find its corresponding coarsened graph, named molecular quotient graph. The right figure (B) shows the application of a GNN architecture to the graph obtained from the FunQG to predict the property of the molecule. In the molecular graph, a specific color corresponds to each FG (its edges and nodes). Also, edges that have exactly one common node with an FG are drawn in red. The remained edges are drawn in black. 
 
 ## Requirements 
 The resulting graphs of the FunQG are much smaller than the molecular graphs. Therefore, a GNN model architecture requires much less depth in working with resulting graphs compared to working with molecular graphs. Thus, using FunQG reduces the computational complexity compared to working with molecular graphs. We utilize one *Intel (R) Xeon (R) E5-2699 v4 @ 2.20GHz* CPU for training, testing, and hyperparameter tuning of a GNN model on each dataset in a relatively short time. Therefore, training the models is very fast and is possible on a standard laptop with only one CPU.
@@ -34,6 +34,7 @@ python train_eval_run.py --name_data <dataset> --current_dir <path> --config <co
 usage: train_eval_run.py [-h] 
   --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo
   --current_dir         Current directory containing codes and data folder
+  --atom_messages       Whether to use atoms (MPNN) or edges (DMPNN) for message passing
   --global_feature      Whether to use global features
   --max_norm_status     Whether to use max-norm regularization
   --scaler_regression   Whether to use Standard scaler for regression tasks
@@ -56,6 +57,7 @@ python hyper_tuning_run.py --name_data <dataset> --current_dir <path>
 usage: hyper_tuning_run.py [-h] 
   --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo
   --current_dir         Current directory containing codes and data folder
+  --atom_messages       Whether to use atoms (MPNN) or edges (DMPNN) for message passing
   --global_feature      Whether to use global features
   --max_norm_status     Whether to use max-norm regularization
   --scaler_regression   Whether to use Standard scaler for regression tasks
