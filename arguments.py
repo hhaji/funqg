@@ -20,8 +20,9 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--name_data", type=str, default='lipo', help="tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo")
+parser.add_argument("--name_data", type=str, default='lipo', help="tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo, hiv, muv")
 parser.add_argument("--current_dir", type=str, default=os.path.dirname(__file__)+"/", help="Current directory containing codes and data folder") 
+parser.add_argument("--atom_messages", type=str2bool, nargs='?', const=False, default=False, help="Whether to use atoms (MPNN) or edges (DMPNN) for message passing")
 parser.add_argument("--global_feature", type=str2bool, nargs='?', const=True, default=True, help="Whether to use global features")
 parser.add_argument("--max_norm_status", type=str2bool, nargs='?', const=True, default=True, help="Whether to use max-norm regularization")
 parser.add_argument("--scaler_regression", type=str2bool, nargs='?', const=True, default=True, help="Whether to use Standard scaler for regression tasks")
@@ -64,7 +65,7 @@ if "train_eval_run.py" not in sys.argv[0]:
 else:
     num_seeds = c.n_splits
 
-if c.name_data in ["tox21", "toxcast", "clintox", "sider", "bbbp", "bace"]:
+if c.name_data in ["tox21", "toxcast", "clintox", "sider", "bbbp", "bace", "hiv", "muv"]:
     task_type = "Classification"
     mode_ray = 'max'    
 elif c.name_data in ["freesolv", "esol", "lipo"]:
@@ -91,6 +92,10 @@ elif c.name_data=="esol":
     num_tasks = 1   
 elif c.name_data=="freesolv":
     num_tasks = 1   
+elif c.name_data=="hiv":
+    num_tasks = 1  
+elif c.name_data=="muv":
+    num_tasks = 17 
 else:  # Unknown dataset error
     raise Exception('Unknown dataset, please enter a correct --name_data')                           
 
@@ -103,6 +108,7 @@ node_feature_size = 127
 edge_feature_size = 12
 name_node_feature="_"+str(node_feature_size)+"_one_hot"        
 name_final_zip = "Hierarchical_Quotient_type_False_Both_False_Uni_Vert_False_#quotient_2_#layers_1_127_one_hot.zip"
+# name_final_zip = "Quotient_complement_type_False_#quotient_0_Complement_False_127_one_hot.zip"
 
 '''
 Random seed to use when splitting data into train/val/test sets. When `n_splits > 1`, similar to DMPNN

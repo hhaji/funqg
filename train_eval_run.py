@@ -192,7 +192,7 @@ def train_evaluate():
         torch.cuda.manual_seed_all(args.config.get("seed", 42))
         dgl.seed(args.config.get("seed", 42))  
     device = args.device
-    model = [GNN(args.config, arguments.global_size, arguments.num_tasks, args.global_feature)]
+    model = [GNN(args.config, arguments.global_size, arguments.num_tasks, args.global_feature, args.atom_messages)]
     model[0].to(device)
     optimizer = [torch.optim.Adam(model[0].parameters(), lr = args.config.get("lr", 0.0001))]
 
@@ -267,7 +267,7 @@ def train_evaluate():
 
 def test_evaluate():  
     device = args.device   
-    final_models = [GNN(args.config, arguments.global_size, arguments.num_tasks, args.global_feature) for i in range(args.n_splits)]
+    final_models = [GNN(args.config, arguments.global_size, arguments.num_tasks, args.global_feature, args.atom_messages) for i in range(args.n_splits)]
     test_scores = []
     for fold_idx in range(args.n_splits):
         path = os.path.join(best_model_path, 'checkpoint_'+str(fold_idx)+'.pth')
