@@ -1,5 +1,5 @@
 
-""" A GNN Model (DMPNN)"""
+""" A GNN Model """
 
 import torch
 import torch.nn as nn
@@ -8,13 +8,14 @@ import dgl.function as fn
 import arguments
 
 class GNN(nn.Module):
-    def __init__(self, config, global_size, num_tasks, global_feature):
+    def __init__(self, config, global_size, num_tasks, global_feature, atom_messages):
         super().__init__()
 
         self.config = config
         self.global_size = global_size
         self.num_tasks = num_tasks
         self.global_feature = global_feature
+        self.atom_messages = atom_messages
 
         # Activation functions
         self.act_r1 = self.config.get("act_r1", "relu") 
@@ -35,8 +36,18 @@ class GNN(nn.Module):
         # Hidden size
         self.hidden_size = int(round(self.config.get('hidden_size', 200),0))
 
-        self.linear_i = nn.Linear(arguments.node_feature_size+arguments.edge_feature_size, self.hidden_size)
-        self.linear_m = nn.Linear(self.hidden_size, self.hidden_size)
+        # Input
+        input_dim = arguments.node_feature_size if self.atom_messages else arguments.node_feature_size+arguments.edge_feature_size
+        self.linear_i = nn.Linear(input_dim, self.hidden_size)
+
+        if self.atom_messages:
+            w_h_input_size = self.hidden_size + arguments.edge_feature_size
+        else:
+            w_h_input_size = self.hidden_size
+
+        # Shared weight matrix across depths (default)
+        self.linear_m = nn.Linear(w_h_input_size, self.hidden_size)
+
         self.linear_a = nn.Linear(arguments.node_feature_size+self.hidden_size, self.hidden_size)
 
         self.hidden_globals = self.global_size
@@ -71,10 +82,20 @@ class GNN(nn.Module):
             act_m1_eval =eval("torch.nn.functional."+self.act_m1)
         return {'h_0' : act_m1_eval(self.linear_i(concat))}
 
+    def state_node_0(self, nodes):
+        if self.act_m1=="tanh":
+            act_m1_eval =eval("torch."+self.act_m1)
+        elif self.act_m1=="selu" or self.act_m1=="relu":   
+            act_m1_eval =eval("torch.nn.functional."+self.act_m1)
+        return {'h_0' : act_m1_eval(self.linear_i(nodes.data["v"])),
+                'h_input' : self.linear_i(nodes.data["v"])}
+
+    def scr_edge_cat(self, edges):
+        concat = torch.cat((edges.src['h'],edges.data["e"]),1).float()
+        return {'out' : concat}        
+
     def forward(self, mol_dgl_graph, globals):
         with mol_dgl_graph.local_scope():
-            mol_dgl_graph.ndata["r"]= mol_dgl_graph.ndata["v"][:,-1]
-            mol_dgl_graph.edata["r"]= mol_dgl_graph.edata["e"][:,-1]
             mol_dgl_graph.ndata["v"]= mol_dgl_graph.ndata["v"][:,:arguments.node_feature_size]
             mol_dgl_graph.edata["e"] = mol_dgl_graph.edata["e"][:,:arguments.edge_feature_size] 
 
@@ -88,28 +109,45 @@ class GNN(nn.Module):
             elif self.act_m3=="selu" or self.act_m3=="relu":   
                 act_m3_eval =eval("torch.nn.functional."+self.act_m3)
 
-            mol_dgl_graph.apply_edges(self.state_edge_0)
+            if self.atom_messages:
+                mol_dgl_graph.apply_nodes(self.state_node_0)
+                mol_dgl_graph.ndata["h"] = mol_dgl_graph.ndata["h_0"]
+                for i in range(self.GNN_Layers):
+                    '''
+                    The following code returns a feature for a node, n=v, which is the summation 
+                    of concatanations of features of all w in N(v) with initial features of e_vw.
+                    ''' 
+                    mol_dgl_graph.apply_edges(self.scr_edge_cat)
+                    mol_dgl_graph.update_all(fn.copy_e("out","m"), fn.sum("m", "temp"))
+                    mol_dgl_graph.ndata["h"] = self.d(act_m2_eval(mol_dgl_graph.ndata["h_input"]+\
+                                               self.linear_m(mol_dgl_graph.ndata["temp"])))
+                
+                mol_dgl_graph.update_all(fn.copy_u("h","m"), fn.sum("m", "m_v"))
+                concat_atom_feat_m_v = torch.cat((mol_dgl_graph.ndata["v"], mol_dgl_graph.ndata["m_v"]),1)
+                mol_dgl_graph.ndata["h_v"] = self.dd(act_m3_eval(self.linear_a(concat_atom_feat_m_v)))
 
-            mol_dgl_graph.edata["h"] = mol_dgl_graph.edata["h_0"]
-            mol_dgl_line_graph = dgl.line_graph(mol_dgl_graph, backtracking=False, shared=False) 
+            else:                
+                mol_dgl_graph.apply_edges(self.state_edge_0)
 
-            for i in range(self.GNN_Layers):
-                '''
-                The following code returns a feature for an edge, e=vw, which is the summation 
-                of features of in_feat edges to the vertex v minus parallel edge wv.
-                ''' 
-                mol_dgl_line_graph.ndata["temp"] = mol_dgl_graph.edata["h"]
-                mol_dgl_line_graph.update_all(fn.copy_u("temp","mailbox"), fn.sum("mailbox", "temp"))
-                m_e = mol_dgl_line_graph.ndata["temp"]
-                ''''''
-                mol_dgl_graph.edata["h"] = self.d(act_m2_eval(mol_dgl_graph.edata["h_0"]+self.linear_m(m_e)))
+                mol_dgl_graph.edata["h"] = mol_dgl_graph.edata["h_0"]
+                mol_dgl_line_graph = dgl.line_graph(mol_dgl_graph, backtracking=False, shared=False) 
 
-            reverse_mol_dgl_graph = mol_dgl_graph.reverse(copy_ndata=True, copy_edata=True)
-            reverse_mol_dgl_graph.update_all(fn.copy_e("h","mailbox"), fn.sum("mailbox", "m_v"))
-            mol_dgl_graph.ndata["m_v"] = reverse_mol_dgl_graph.ndata["m_v"]
-            concat_atom_feat_m_v = torch.cat((mol_dgl_graph.ndata["v"], mol_dgl_graph.ndata["m_v"]),1)
-            mol_dgl_graph.ndata["h_v"] = self.dd(act_m3_eval(self.linear_a(concat_atom_feat_m_v)))
-            mol_dgl_graph.edata["h_e"] = mol_dgl_graph.edata["h"]
+                for i in range(self.GNN_Layers):
+                    '''
+                    The following code returns a feature for an edge, e=vw, which is the summation 
+                    of features of in_feat edges to the vertex v minus parallel edge wv.
+                    ''' 
+                    mol_dgl_line_graph.ndata["temp"] = mol_dgl_graph.edata["h"]
+                    mol_dgl_line_graph.update_all(fn.copy_u("temp","mailbox"), fn.sum("mailbox", "temp"))
+                    m_e = mol_dgl_line_graph.ndata["temp"]
+                    ''''''
+                    mol_dgl_graph.edata["h"] = self.d(act_m2_eval(mol_dgl_graph.edata["h_0"]+self.linear_m(m_e)))
+
+                reverse_mol_dgl_graph = mol_dgl_graph.reverse(copy_ndata=True, copy_edata=True)
+                reverse_mol_dgl_graph.update_all(fn.copy_e("h","mailbox"), fn.sum("mailbox", "m_v"))
+                mol_dgl_graph.ndata["m_v"] = reverse_mol_dgl_graph.ndata["m_v"]
+                concat_atom_feat_m_v = torch.cat((mol_dgl_graph.ndata["v"], mol_dgl_graph.ndata["m_v"]),1)
+                mol_dgl_graph.ndata["h_v"] = self.dd(act_m3_eval(self.linear_a(concat_atom_feat_m_v)))
 
             if self.act_r1=="tanh":
                 act_r1_eval =eval("torch."+self.act_r1)

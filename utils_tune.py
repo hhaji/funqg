@@ -55,7 +55,8 @@ class TrainableCV(tune.Trainable):
     def setup(self, config=None, data=None, scaler=None, val_size=None, test_size=None,
            global_size=None, num_tasks=None, global_feature=None,
                 n_splits=None, batch_size=None, list_seeds=None,
-                task_type=None, training_iteration=None, ray_tune=None, scaler_regression=None, max_norm_status=None):
+                task_type=None, training_iteration=None, ray_tune=None,
+                scaler_regression=None, max_norm_status=None, atom_messages=None):
         os.environ['PYTHONHASHSEED']=str(config.get("seed", 42))
         random.seed(config.get("seed", 42))
         np.random.seed(config.get("seed", 42))
@@ -77,8 +78,9 @@ class TrainableCV(tune.Trainable):
         self.ray_tune = ray_tune
         self.scaler_regression = scaler_regression
         self.max_norm_status = max_norm_status
+        self.atom_messages = atom_messages
         self.device = "cpu" 
-        self.model = [GNN(config, self.global_size, self.num_tasks, self.global_feature)]
+        self.model = [GNN(config, self.global_size, self.num_tasks, self.global_feature, self.atom_messages)]
         for fold_idx in range(1, self.n_splits):
             self.model.append(copy.deepcopy(self.model[0]))
         if torch.cuda.is_available():
