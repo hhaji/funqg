@@ -28,7 +28,11 @@ checkpoint_path = current_dir + "save_models/model_checkpoints/" + args.name_dat
     "Hierarchical_Quotient_type_False_Idx_Row_11/Both_False_Uni_Vert_False_#quotient_2_#layers_1"
 os.makedirs(checkpoint_path, exist_ok=True)
 
-best_model_path = current_dir +"data/best_model/" + args.name_data
+if args.atom_messages:
+    best_model_path = current_dir +"data/best_model_mpnn/" + args.name_data
+else:
+    best_model_path = current_dir +"data/best_model_dmpnn/" + args.name_data
+
 
 folder_data_temp = current_dir +"data_temp/"
 shutil.rmtree(folder_data_temp, ignore_errors=True) 

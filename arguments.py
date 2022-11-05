@@ -20,7 +20,7 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--name_data", type=str, default='lipo', help="tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo, hiv, muv")
+parser.add_argument("--name_data", type=str, default='lipo', help="tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo")
 parser.add_argument("--current_dir", type=str, default=os.path.dirname(__file__)+"/", help="Current directory containing codes and data folder") 
 parser.add_argument("--atom_messages", type=str2bool, nargs='?', const=False, default=False, help="Whether to use atoms (MPNN) or edges (DMPNN) for message passing")
 parser.add_argument("--global_feature", type=str2bool, nargs='?', const=True, default=True, help="Whether to use global features")
@@ -65,7 +65,7 @@ if "train_eval_run.py" not in sys.argv[0]:
 else:
     num_seeds = c.n_splits
 
-if c.name_data in ["tox21", "toxcast", "clintox", "sider", "bbbp", "bace", "hiv", "muv"]:
+if c.name_data in ["tox21", "toxcast", "clintox", "sider", "bbbp", "bace"]:
     task_type = "Classification"
     mode_ray = 'max'    
 elif c.name_data in ["freesolv", "esol", "lipo"]:
@@ -92,10 +92,6 @@ elif c.name_data=="esol":
     num_tasks = 1   
 elif c.name_data=="freesolv":
     num_tasks = 1   
-elif c.name_data=="hiv":
-    num_tasks = 1  
-elif c.name_data=="muv":
-    num_tasks = 17 
 else:  # Unknown dataset error
     raise Exception('Unknown dataset, please enter a correct --name_data')                           
 
