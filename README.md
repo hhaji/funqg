@@ -2,7 +2,7 @@
 
 <div align="justify">
    
-**FunQG** is a novel graph coarsening framework specific to molecular data, utilizing **Fun**ctional groups based on a graph-theoretic concept called **Q**uotient **G**raph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. By experiments, this method significantly outperforms previous baselines on various datasets, besides its low computational complexity.
+**FunQG** is a novel graph coarsening framework specific to molecular data, utilizing **Fun**ctional groups based on a graph-theoretic concept called **Q**uotient **G**raph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. By experiments, this method significantly outperforms previous baselines on various datasets, besides its low computational costs.
 
 <p align="center">
    <img  src=https://github.com/zahta/funqg/blob/main/data/funqg.png?raw=true width="1000"/>  
@@ -10,7 +10,7 @@
 <b>The overview of FunQG framework.</b> The left figure (A) illustrates the application of the FunQG framework to a molecule to find its corresponding coarsened graph, named molecular quotient graph. The right figure (B) shows the application of a GNN architecture to the graph obtained from the FunQG to predict the property of the molecule. In the molecular graph, a specific color corresponds to each FG (its edges and nodes). Also, edges that have exactly one common node with an FG are drawn in red. The remained edges are drawn in black. 
 
 ## Requirements 
-The resulting graphs of the FunQG are much smaller than the molecular graphs. Therefore, a GNN model architecture requires much less depth in working with resulting graphs compared to working with molecular graphs. Thus, using FunQG reduces the computational complexity compared to working with molecular graphs. We utilize one *Intel (R) Xeon (R) E5-2699 v4 @ 2.20GHz* CPU for training, testing, and hyperparameter tuning of a GNN model on each dataset in a relatively short time. Therefore, training the models is very fast and is possible on a standard laptop with only one CPU.
+The resulting graphs of the FunQG are much smaller than the molecular graphs. Therefore, a GNN model architecture requires much less depth in working with resulting graphs compared to working with molecular graphs. Thus, using FunQG reduces the computational costs compared to working with molecular graphs. We utilize one *Intel (R) Xeon (R) E5-2699 v4 @ 2.20GHz* CPU for training, testing, and hyperparameter tuning of a GNN model on each dataset in a relatively short time. Therefore, training the models is very fast and is possible on a standard laptop with only one CPU.
 </div>
 
 ```
