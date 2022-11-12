@@ -1,5 +1,5 @@
 smiles,FDA_APPROVED,CT_TOX
-*C(=O)[C@H](CCCCNC(=O)OCCOC)NC(=O)OCCOC,1,0
+C(=O)[C@H](CCCCNC(=O)OCCOC)NC(=O)OCCOC,1,0
 [C@@H]1([C@@H]([C@@H]([C@H]([C@@H]([C@@H]1Cl)Cl)Cl)Cl)Cl)Cl,1,0
 [C@H]([C@@H]([C@@H](C(=O)[O-])O)O)([C@H](C(=O)[O-])O)O,1,0
 [H]/[NH+]=C(/C1=CC(=O)/C(=C\C=c2ccc(=C([NH3+])N)cc2)/C=C1)\N,1,0
