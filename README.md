@@ -28,13 +28,13 @@ cd ./funqg
 
 ### Generating Graphs Example
 ```sh
-python graph_generator.py --gen_names_data '["tox21", "bbbp"]' --splits '["scaffold"]'
+python graph_generator.py --gen_names_data <list_of_datasets> --splits '["scaffold"]'
 ```
 ```sh
 usage: graph_generator.py [-h]
   --current_dir               Current directory containing codes and data folder
   --gen_names_data            <Required> A string containing a list of data names to generate graph data, e.g. "["tox21", "bbbp"]"
-  --splits SPLITS             A string containing a list of split types to generate graph data, e.g. "["scaffold"]"
+  --splits                    A string containing a list of split types to generate graph data, e.g. "["scaffold"]"
   --generation_seeds          A string containing a list of random seeds to generate graph data, e.g. "[0, 1, 2]"
   --HQ_first_aggregation_op   mean, sum
 ```
