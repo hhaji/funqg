@@ -5,7 +5,7 @@
 **FunQG** is a novel graph coarsening framework specific to molecular data, utilizing **Fun**ctional groups based on a graph-theoretic concept called **Q**uotient **G**raph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. By experiments, this method significantly outperforms previous baselines on various datasets, besides its low computational costs.
 
 <p align="center">
-   <img  src=https://github.com/zahta/funqg/blob/main/data/funqg.png?raw=true width="1000"/>  
+<a href='https://postimages.org/' target='_blank'><img src='https://i.postimg.cc/fbCWspHV/Screenshot-from-2022-11-13-14-49-26.png' border='0' alt='Screenshot-from-2022-11-13-14-49-26'/></a>
 </p>
 <b>The overview of FunQG framework.</b> The left figure (A) illustrates the application of the FunQG framework to a molecule to find its corresponding coarsened graph, named molecular quotient graph. The right figure (B) shows the application of a GNN architecture to the graph obtained from the FunQG to predict the property of the molecule. In the molecular graph, a specific color corresponds to each FG (its edges and nodes). Also, edges that have exactly one common node with an FG are drawn in red. The remained edges are drawn in black. 
 
