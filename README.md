@@ -26,7 +26,20 @@ git clone https://github.com/hhaji/funqg.git
 cd ./funqg
 ```
 
-### Training And/Or Evaluation Example
+### Generating Graphs Example
+```sh
+python graph_generator.py --gen_names_data <list_of_datasets> --splits '["scaffold"]'
+```
+```sh
+usage: graph_generator.py [-h]
+  --current_dir               Current directory containing codes and data folder
+  --gen_names_data            <Required> A string containing a list of data names to generate graph data, e.g. '["tox21", "bbbp"]'
+  --splits                    A string containing a list of split types to generate graph data, e.g. '["scaffold"]'
+  --generation_seeds          A string containing a list of random seeds to generate graph data, e.g. '[0, 1, 2]'
+  --HQ_first_aggregation_op   mean, sum
+```
+
+### Training and/or Evaluation Example
 ```sh
 python train_eval_run.py --name_data <dataset> --current_dir <path> --config <config>
 ```
@@ -46,7 +59,7 @@ usage: train_eval_run.py [-h]
   --device              cpu, cuda
   --patience            Number of patience of early stopping
   --config              A configuration of hyperparameters as an string, e.g.,
-                        "{"GNN_Layers": 5.0, "dropout": 0.15, "lr": 0.0005}"
+                        {"GNN_Layers": 5.0, "dropout": 0.15, "lr": 0.0005}'
 ```
 
 ### Hyperparameters Optimization Example
@@ -78,8 +91,8 @@ usage: hyper_tuning_run.py [-h]
 - **Hossein Hajiabolhassan** - [hhaji](https://github.com/hhaji)
 
 ## Co-Authors
-- **Ali Hojatnia** - [alihojatnia](https://github.com/alihojatnia)
 - **Yavar Taheri Yeganeh** - [YavarYeganeh](https://github.com/YavarYeganeh)
+- **Ali Hojatnia** - [alihojatnia](https://github.com/alihojatnia)
 
 ## Citation
 Hajiabolhassan, H., Taheri, Z., Hojatnia, A., & Yeganeh, Y. T. (2022). FunQG: Molecular Representation Learning Via Quotient Graphs. arXiv. https://doi.org/10.48550/arXiv.2207.08597
