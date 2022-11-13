@@ -273,7 +273,6 @@ for name_data in args.gen_names_data:
                             are_graphs_generated = True
                             print(g, generated_featurized_graphs[train_set[0][0]])
 
-
                         """Training Set"""
                         dgl_train=[]
                         smiles_train = []
@@ -290,14 +289,11 @@ for name_data in args.gen_names_data:
                             masks_train= torch.cat((masks_train, member[2]), dim=0)  
                             globals_train= torch.cat((globals_train, member[3]), dim=0) 
                             counter+=1    
-
                         print(counter)
 
                         label={"labels":labels_train, "masks":masks_train, "globals":globals_train}
                         new_path=path_save_temp+"_train.bin"
                         dgl.save_graphs(new_path, dgl_train, labels=label)
-
-                        import pickle
                         new_path=path_save_temp+"_smiles_train.pickle"
                         pickle_out = open(new_path,"wb")
                         pickle.dump(smiles_train, pickle_out)
@@ -318,13 +314,11 @@ for name_data in args.gen_names_data:
                             masks_val= torch.cat((masks_val, member[2]), dim=0) 
                             globals_val= torch.cat((globals_val, member[3]), dim=0) 
                             counter+=1 
-
                         print(counter)
 
                         label={"labels":labels_val, "masks":masks_val, "globals":globals_val}
                         new_path=path_save_temp+"_val.bin"
                         dgl.save_graphs(new_path, dgl_val, labels=label)
-
                         new_path=path_save_temp+"_smiles_val.pickle"
                         pickle_out = open(new_path,"wb")
                         pickle.dump(smiles_val, pickle_out)
@@ -345,13 +339,11 @@ for name_data in args.gen_names_data:
                             masks_test= torch.cat((masks_test, member[2]), dim=0) 
                             globals_test= torch.cat((globals_test, member[3]), dim=0) 
                             counter+=1  
-
                         print(counter)
 
                         label={"labels":labels_test, "masks":masks_test, "globals":globals_test}
                         new_path=path_save_temp+"_test.bin"
                         dgl.save_graphs(new_path, dgl_test, labels=label)
-
                         new_path=path_save_temp+"_smiles_test.pickle"
                         pickle_out = open(new_path,"wb")
                         pickle.dump(smiles_test, pickle_out)
