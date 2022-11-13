@@ -26,7 +26,7 @@ git clone https://github.com/hhaji/funqg.git
 cd ./funqg
 ```
 
-### Generating Graphs Example
+### Generating FunQG Graphs Example
 ```sh
 python graph_generator.py --gen_names_data <list_of_datasets> --splits '["scaffold"]'
 ```
