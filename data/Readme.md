@@ -10,3 +10,8 @@
     descriptastorus 1.1.0
     deepchem 2.6.1
     
+    
+<p align="center">
+   <img  src=https://github.com/hhaji/funqm/blob/main/data/p5.png?raw=true width="1000"/>
+</p>    
+    
