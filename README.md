@@ -2,7 +2,7 @@
 
 <div align="justify">
    
-**FunQG** is a novel graph coarsening framework specific to molecular data, utilizing **Fun**ctional groups based on a graph-theoretic concept called **Q**uotient **G**raph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. By experiments, this method significantly outperforms previous baselines on various datasets, besides its low computational costs.
+**FunQG** is a novel graph coarsening framework specific to molecular data, utilizing **Fun**ctional groups based on a graph-theoretic concept called **Q**uotient **G**raph. FunQG can accurately complete various molecular property prediction tasks with a significant parameters reduction. 
 
 <p align="center">
 <a href='https://postimages.org/' target='_blank'><img src='https://i.postimg.cc/fbCWspHV/Screenshot-from-2022-11-13-14-49-26.png' border='0' alt='Screenshot-from-2022-11-13-14-49-26'/></a>
@@ -32,6 +32,7 @@ python graph_generator.py --gen_names_data <list_of_datasets> --splits '["scaffo
 ```
 ```sh
 usage: graph_generator.py [-h]
+  --name_graph                Name of the constructed graph ("funqg" means FunQG graph and "mg" means molecular graph)
   --current_dir               Current directory containing codes and data folder
   --gen_names_data            <Required> A string containing a list of data names to generate graph data, e.g. '["tox21", "bbbp"]'
   --splits                    A string containing a list of split types to generate graph data, e.g. '["scaffold"]'
@@ -45,7 +46,8 @@ python train_eval_run.py --name_data <dataset> --current_dir <path> --config <co
 ```
 ```sh
 usage: train_eval_run.py [-h] 
-  --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo
+  --name_graph          Name of the constructed graph ("funqg" means FunQG graph and "mg" means molecular graph)
+  --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo, muv, hiv, qm7, qm8, pdbbind_r, pdbbind_c, pdbbind_f
   --current_dir         Current directory containing codes and data folder
   --atom_messages       Whether to use atoms (MPNN) or edges (DMPNN) for message passing
   --global_feature      Whether to use global features
@@ -68,7 +70,8 @@ python hyper_tuning_run.py --name_data <dataset> --current_dir <path>
 ```
 ```sh
 usage: hyper_tuning_run.py [-h] 
-  --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo
+  --name_graph          Name of the constructed graph ("funqg" means FunQG graph and "mg" means molecular graph)
+  --name_data           tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo, muv, hiv, qm7, qm8, pdbbind_r, pdbbind_c, pdbbind_f
   --current_dir         Current directory containing codes and data folder
   --atom_messages       Whether to use atoms (MPNN) or edges (DMPNN) for message passing
   --global_feature      Whether to use global features

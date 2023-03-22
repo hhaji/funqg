@@ -20,8 +20,10 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("--name_graph", type=str, default="funqg", help='Name of the constructed graph ("funqg" means FunQG graph and "mg" means molecular graph)')
+
 if "graph_generator.py" not in sys.argv[0]:
-    parser.add_argument("--name_data", type=str, default='lipo', help="tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo")
+    parser.add_argument("--name_data", type=str, default="tox21", help="tox21, toxcast, clintox, sider, bbbp, bace, freesolv, esol, lipo, muv, hiv, qm7, qm8, pdbbind_r, pdbbind_c, pdbbind_f")
     parser.add_argument("--current_dir", type=str, default=os.path.dirname(__file__)+"/", help="Current directory containing codes and data folder") 
     parser.add_argument("--atom_messages", type=str2bool, nargs='?', const=False, default=False, help="Whether to use atoms (MPNN) or edges (DMPNN) for message passing")
     parser.add_argument("--global_feature", type=str2bool, nargs='?', const=True, default=True, help="Whether to use global features")
@@ -30,21 +32,21 @@ if "graph_generator.py" not in sys.argv[0]:
     parser.add_argument("--division", type=str, default='scaffold', help='scaffold, random')
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
 
-if "train_eval_run.py" not in sys.argv[0] and "graph_generator.py" not in sys.argv[0]:
+if "train_eval_run.py" not in sys.argv[0] and "graph_generator.py" not in sys.argv[0] and "explain_captum.py" not in sys.argv[0]:
     ray_tune = True
     parser.add_argument("--name_scheduler", type=str, default="asha", help="None, asha, bohb, median")
     parser.add_argument("--name_search_alg", type=str, default="optuna", help="None, optuna, bohb, hyperopt")
     parser.add_argument("--num_samples", type=int, default=500, help="Number of times to sample from the hyperparameter space")
     parser.add_argument("--training_iteration", type=int, default=64, help="Number of iteration of training for hyperparameter tuning")
-    parser.add_argument("--max_concurrent", type=int, default=40, help="Maximum number of trials to run concurrently")
-    parser.add_argument("--num_cpus", type=int, default=40, help="Number of CPUs (CPU_core*Thread_per_core) for hyperparameter tuning")
+    parser.add_argument("--max_concurrent", type=int, default=60, help="Maximum number of trials to run concurrently")
+    parser.add_argument("--num_cpus", type=int, default=120, help="Number of CPUs (CPU_core*Thread_per_core) for hyperparameter tuning")
     parser.add_argument("--num_gpus", type=int, default=0, help="Number of GPUs for hyperparameter tuning")
-    parser.add_argument("--n_splits", type=int, default=5, help="Number of splits for CV")
+    parser.add_argument("--num_splits", type=int, default=5, help="Number of splits for CV")
 
-elif "train_eval_run.py" in sys.argv[0]:
+elif "train_eval_run.py" in sys.argv[0] or "explain_captum.py" in sys.argv[0]:
     ray_tune = False
     parser.add_argument("--evaluate_saved", type=str2bool, nargs='?', const=False, default=False, help="Whether just to compute test scores for the best-saved models or train the models first")
-    parser.add_argument("--n_splits", type=int, default=3, help="Number of splits for CV")
+    parser.add_argument("--num_splits", type=int, default=3, help="Number of splits for CV")
     parser.add_argument("--num_epochs", type=int, default=200, help="Number of epochs")
     parser.add_argument("--device", type=str, default='cpu', help='cpu, cuda')
     parser.add_argument("--patience", type=int, default=20, help="Number of patience of early stopping")
@@ -54,7 +56,7 @@ elif "graph_generator.py" in sys.argv[0]:
     parser.add_argument("--current_dir", type=str, default=os.path.dirname(__file__)+"/", help="Current directory containing codes and data folder") 
     parser.add_argument("--gen_names_data", type=json.loads, help='<Required> A string containing a list of data names to generate graph data, e.g. "["tox21", "bbbp"]"', required=True)
     parser.add_argument("--splits", default=["scaffold"], type=json.loads, help='A string containing a list of split types to generate graph data, e.g. "["scaffold"]"')
-    parser.add_argument("--generation_seeds", default=[0, 1, 2], type=json.loads, help='A string containing a list of random seeds to generate graph data, e.g. "[0, 1, 2]"')
+    parser.add_argument("--generation_seeds", default=[0,1,2], type=json.loads, help='A string containing a list of random seeds to generate graph data, e.g. "[0, 1, 2]"')
     parser.add_argument("--HQ_first_aggregation_op", type=str, default='mean', help='mean, sum')
     # parser.add_argument('--generation_models_rows', default={'Hierarchical_Quotient' : [11]}, type=json.loads, help='A string containing a dictionary of graph types to generate, e.g., "{"Hierarchical_Quotient" : [11,10,1,0], "Quotient_complement" : [0]}"')
     generation_models_rows = {'Hierarchical_Quotient' : [11]}
@@ -74,36 +76,63 @@ args, unknown = parser.parse_known_args(namespace=c)
 if "train_eval_run.py" not in sys.argv[0]:
     num_seeds = 1
 else:
-    num_seeds = c.n_splits
+    num_seeds = c.num_splits
 
 if "graph_generator.py" not in sys.argv[0]:
-    if c.name_data in ["tox21", "toxcast", "clintox", "sider", "bbbp", "bace"]:
+    print(sys.argv[0])
+    print(c.name_data)
+    if c.name_data in ["tox21", "toxcast", "clintox", "sider", "bbbp", "bace", "muv", "hiv"]:
         task_type = "Classification"
         mode_ray = 'max'    
-    elif c.name_data in ["freesolv", "esol", "lipo"]:
-        mode_ray = 'min'
+    elif c.name_data in ["freesolv", "esol", "lipo", "qm7", "qm8", "pdbbind_r", "pdbbind_c", "pdbbind_f"]:
         task_type = "Regression"
+        mode_ray = 'min'        
     else:  # Unknown dataset error
         raise Exception('Unknown dataset, please enter a correct --name_data')
 
     if c.name_data=="tox21":
+        dataset_metric = "ROC-AUC"
         num_tasks = 12
     elif c.name_data=="bbbp":
+        dataset_metric = "ROC-AUC"
         num_tasks = 1   
     elif c.name_data=="bace":
+        dataset_metric = "ROC-AUC"
         num_tasks = 1   
     elif c.name_data=="clintox":
+        dataset_metric = "ROC-AUC"
         num_tasks = 2   
     elif c.name_data=="toxcast":
+        dataset_metric = "ROC-AUC"
         num_tasks = 617   
     elif c.name_data=="sider":
+        dataset_metric = "ROC-AUC"
         num_tasks = 27   
+    elif c.name_data=="muv":
+        dataset_metric = "PRC-AUC"
+        num_tasks = 17  
+    elif c.name_data=="hiv":
+        dataset_metric = "ROC-AUC"
+        num_tasks = 1           
     elif c.name_data=="lipo":
+        dataset_metric = "RMSE"
         num_tasks = 1   
     elif c.name_data=="esol":
+        dataset_metric = "RMSE"
         num_tasks = 1   
     elif c.name_data=="freesolv":
+        dataset_metric = "RMSE"
         num_tasks = 1   
+    elif c.name_data=="qm7":
+        dataset_metric = "MAE"
+        num_tasks = 1   
+    elif c.name_data=="qm8":
+        dataset_metric = "MAE"
+        num_tasks = 12   
+    elif c.name_data=="pdbbind_r" or c.name_data=="pdbbind_c" or c.name_data=="pdbbind_f":
+        dataset_metric = "RMSE"
+        num_tasks = 1          
+
     else:  # Unknown dataset error
         raise Exception('Unknown dataset, please enter a correct --name_data')                           
 
@@ -114,13 +143,20 @@ if "graph_generator.py" not in sys.argv[0]:
 
 node_feature_size = 127
 edge_feature_size = 12
-name_node_feature ="_"+str(node_feature_size)+"_one_hot"        
-name_final = "Hierarchical_Quotient_type_False_Both_False_Uni_Vert_False_#quotient_2_#layers_1_127_one_hot"
-name_final_zip = name_final+".zip"
-# name_final_zip = "Quotient_complement_type_False_#quotient_0_Complement_False_127_one_hot.zip"
+name_node_feature ="_"+str(node_feature_size)+"_one_hot"    
+
+if c.name_graph=="funqg":
+    name_final = "Hierarchical_Quotient_type_False_Both_False_Uni_Vert_False_#quotient_2_#layers_1_127_one_hot"
+    # just for generation of HQ0 graphs
+    if "graph_generator.py" in sys.argv[0] and generation_models_rows['Hierarchical_Quotient']==[0]:
+        name_final = "Hierarchical_Quotient_type_False_Both_False_Uni_Vert_False_#quotient_1_#layers_1_127_one_hot"
+    name_final_zip = name_final+".zip"
+elif c.name_graph=="mg":    
+    name_final = "Quotient_complement_type_False_#quotient_0_Complement_False_127_one_hot"
+    name_final_zip = name_final+".zip"
 
 '''
-Random seed to use when splitting data into train/val/test sets. When `n_splits > 1`, similar to DMPNN
+Random seed to use when splitting data into train/val/test sets. When `num_splits > 1`, similar to DMPNN
 (https://chemprop.readthedocs.io/en/latest/args.html?highlight=seed#chemprop.args.TrainArgs.seed),
 the first fold uses the seed 0 and all subsequent folds add 1 to the seed
 ''' 
