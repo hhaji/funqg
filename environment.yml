@@ -1,4 +1,4 @@
-name: gmlg3
+name: gmlg
 channels:
   - rmg
   - pytorch
