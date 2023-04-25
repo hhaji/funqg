@@ -32,18 +32,18 @@ if "graph_generator.py" not in sys.argv[0]:
     parser.add_argument("--division", type=str, default='scaffold', help='scaffold, random')
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
 
-if "train_eval_run.py" not in sys.argv[0] and "graph_generator.py" not in sys.argv[0] and "explain_captum.py" not in sys.argv[0]:
+if "train_eval_run.py" not in sys.argv[0] and "graph_generator.py" not in sys.argv[0] and "prediction_test_mols.py" not in sys.argv[0] and "exec_explain_captum.py" not in sys.argv[0]:
     ray_tune = True
     parser.add_argument("--name_scheduler", type=str, default="asha", help="None, asha, bohb, median")
     parser.add_argument("--name_search_alg", type=str, default="optuna", help="None, optuna, bohb, hyperopt")
     parser.add_argument("--num_samples", type=int, default=500, help="Number of times to sample from the hyperparameter space")
     parser.add_argument("--training_iteration", type=int, default=64, help="Number of iteration of training for hyperparameter tuning")
     parser.add_argument("--max_concurrent", type=int, default=60, help="Maximum number of trials to run concurrently")
-    parser.add_argument("--num_cpus", type=int, default=120, help="Number of CPUs (CPU_core*Thread_per_core) for hyperparameter tuning")
+    parser.add_argument("--num_cpus", type=int, default=60, help="Number of CPUs (CPU_core*Thread_per_core) for hyperparameter tuning")
     parser.add_argument("--num_gpus", type=int, default=0, help="Number of GPUs for hyperparameter tuning")
     parser.add_argument("--num_splits", type=int, default=5, help="Number of splits for CV")
 
-elif "train_eval_run.py" in sys.argv[0] or "explain_captum.py" in sys.argv[0]:
+elif "train_eval_run.py" in sys.argv[0] or "exec_explain_captum.py" in sys.argv[0]:
     ray_tune = False
     parser.add_argument("--evaluate_saved", type=str2bool, nargs='?', const=False, default=False, help="Whether just to compute test scores for the best-saved models or train the models first")
     parser.add_argument("--num_splits", type=int, default=3, help="Number of splits for CV")
@@ -51,6 +51,21 @@ elif "train_eval_run.py" in sys.argv[0] or "explain_captum.py" in sys.argv[0]:
     parser.add_argument("--device", type=str, default='cpu', help='cpu, cuda')
     parser.add_argument("--patience", type=int, default=20, help="Number of patience of early stopping")
     parser.add_argument('--config', default={}, type=json.loads, help='A configuration of hyperparameters as an string, e.g., "{"GNN_Layers": 5.0, "dropout": 0.15, "lr": 0.0005, "batch_size": 64}" ')
+    
+    parser.add_argument("--lr_scheduler", type=str2bool, nargs='?', const=False, default=False, help="Whether to use scheduler for learning rate (NoamLR)")
+    parser.add_argument("--warmup_epochs", type=int, default=2, help="warmup_epochs for NoamLR")
+    parser.add_argument("--init_lr", type=float, default=0.0001, help="init_lr for NoamLR")
+    parser.add_argument("--max_lr", type=float, default=0.001, help="max_lr for NoamLR")
+    parser.add_argument("--final_lr", type=float, default=0.0001, help="final_lr for NoamLR")
+
+elif "prediction_test_mols.py" in sys.argv[0]:
+    ray_tune = False
+    parser.add_argument("--evaluate_saved", type=str2bool, nargs='?', const=False, default=False, help="Whether just to compute test scores for the best-saved models or train the models first")
+    parser.add_argument("--num_splits", type=int, default=3, help="Number of splits for CV")
+    parser.add_argument("--device", type=str, default='cpu', help='cpu, cuda')
+    parser.add_argument('--config', default={}, type=json.loads, help='A configuration of hyperparameters as an string, e.g., "{"GNN_Layers": 5.0, "dropout": 0.15, "lr": 0.0005, "batch_size": 64}" ')
+    parser.add_argument("--model_fold_idx", type=int, default=0, help="idx of the saved model")
+    parser.add_argument("--test_mols_idx", type=json.loads, required=True, help='<Required> A string containing a list of indices from the test_set to make prediction, e.g. "[300,700]"')
 
 elif "graph_generator.py" in sys.argv[0]:
     parser.add_argument("--current_dir", type=str, default=os.path.dirname(__file__)+"/", help="Current directory containing codes and data folder") 
@@ -73,7 +88,7 @@ class C:
 c=C()
 args, unknown = parser.parse_known_args(namespace=c)
 
-if "train_eval_run.py" not in sys.argv[0]:
+if "train_eval_run.py" not in sys.argv[0] and "prediction_test_mols.py" not in sys.argv[0]:
     num_seeds = 1
 else:
     num_seeds = c.num_splits

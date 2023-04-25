@@ -15,12 +15,14 @@ import zipfile
 import arguments
 from arguments import args
 from utils_generator import create_descriptors, identify_functional_groups, \
-                                  CanonicalAtomFeaturizer, CanonicalBondFeaturizer, \
-                                  RandomScaffoldSplitter, RandomSplitter, RandomStratifiedSplitter_m,\
-                                  DatasetTox21, DatasetBBBP, DatasetBace, DatasetToxcast, \
-                                  DatasetClintox, DatasetSider, DatasetLipo, DatasetESOL, DatasetFreeSolv,\
-                                  fg_idx, fg_types_idx, convert_mol, make_df, fgs_connections_idx, \
-                                  graph_constructor, to_networkx, quotient_generator, splitted_data
+                            CanonicalAtomFeaturizer, CanonicalBondFeaturizer, \
+                            RandomScaffoldSplitter, RandomSplitter, RandomStratifiedSplitter_m,\
+                            DatasetTox21, DatasetBBBP, DatasetBace, DatasetToxcast, \
+                            DatasetClintox, DatasetSider, DatasetLipo, DatasetESOL, DatasetFreeSolv,\
+                            DatasetHiv, DatasetMuv, DatasetQm7, DatasetQm8, \
+                            DatasetPdbbind_r, DatasetPdbbind_c, DatasetPdbbind_f,\
+                            fg_idx, fg_types_idx, convert_mol, make_df, fgs_connections_idx, \
+                            graph_constructor, to_networkx, quotient_generator, splitted_data
 
 current_dir = args.current_dir
 
@@ -34,6 +36,13 @@ dataset_names = {
     "lipo": "DatasetLipo",
     "esol" : "DatasetESOL",
     "freesolv" : "DatasetFreeSolv",
+    "hiv" : "DatasetHiv",
+    "muv" : "DatasetMuv",
+    "qm7" : "DatasetQm7",
+    "qm8" : "DatasetQm8",
+    "pdbbind_r" : "DatasetPdbbind_r",
+    "pdbbind_c" : "DatasetPdbbind_c",
+    "pdbbind_f" : "DatasetPdbbind_f",
 }
 
 # generating global features
@@ -190,25 +199,32 @@ for name_data in args.gen_names_data:
                                 #Quotient based on Carbons, FGs
                                 mol_dgl_graph_q0 = quotient_generator(mol_dgl_graph, edge_condition_feature="edges_non_fgs", op=args.HQ_first_aggregation_op,\
                                                                     another_edges_feature="edges_fgs").int()
-                                mol_dgl_graph_q1 = quotient_generator(mol_dgl_graph_q0, edge_condition_feature="edges_fgs", op="sum").int()
+                                if arguments.name_final == "Hierarchical_Quotient_type_False_Both_False_Uni_Vert_False_#quotient_2_#layers_1_127_one_hot":                               
+                                    mol_dgl_graph_q1 = quotient_generator(mol_dgl_graph_q0, edge_condition_feature="edges_fgs", op="sum").int()
 
-                                mol_dgl_graph.ndata["qn2"]=torch.full((mol_dgl_graph.num_nodes(),1), 0).to(torch.int32)
-                                mol_dgl_graph.edata["qe2"]=torch.full((mol_dgl_graph.num_edges(),1), 0).to(torch.float32)
-                                ####        
-                                mol_dgl_graph_q1.ndata["qn1"]=torch.full((mol_dgl_graph_q1.num_nodes(),1), -1).to(torch.int32)
-                                mol_dgl_graph_q1.edata["qe1"]=torch.full((mol_dgl_graph_q1.num_edges(),1), -1).to(torch.float32)
-                                ####
-                                mol_dgl_graph_q1.ndata["qn2"]= mol_dgl_graph_q1.ndata["qn2"].to(dtype=torch.int32)
-                                mol_dgl_graph.ndata["qn1"]= mol_dgl_graph.ndata["qn1"].to(dtype=torch.int32)
-                                
-                                mol_dgl_graph_q1.ndata["v"][:, -1] = 2
-                                mol_dgl_graph_q1.edata["e"][:, -1] = 2
+                                    mol_dgl_graph.ndata["qn2"]=torch.full((mol_dgl_graph.num_nodes(),1), 0).to(torch.int32)
+                                    mol_dgl_graph.edata["qe2"]=torch.full((mol_dgl_graph.num_edges(),1), 0).to(torch.float32)
+                                    ####        
+                                    mol_dgl_graph_q1.ndata["qn1"]=torch.full((mol_dgl_graph_q1.num_nodes(),1), -1).to(torch.int32)
+                                    mol_dgl_graph_q1.edata["qe1"]=torch.full((mol_dgl_graph_q1.num_edges(),1), -1).to(torch.float32)
+                                    ####
+                                    mol_dgl_graph_q1.ndata["qn2"]= mol_dgl_graph_q1.ndata["qn2"].to(dtype=torch.int32)
+                                    mol_dgl_graph.ndata["qn1"]= mol_dgl_graph.ndata["qn1"].to(dtype=torch.int32)
+                                    
+                                    mol_dgl_graph_q1.ndata["v"][:, -1] = 2
+                                    mol_dgl_graph_q1.edata["e"][:, -1] = 2
 
-                                mol_dgl_graph_q1.ndata.pop('qn1')
-                                mol_dgl_graph_q1.ndata.pop('qn2')
-                                mol_dgl_graph_q1.edata.pop('qe1')
-                                mol_dgl_graph_q1.edata.pop('qe2')  
-                                return mol_dgl_graph_q1                     
+                                if arguments.name_final == "Hierarchical_Quotient_type_False_Both_False_Uni_Vert_False_#quotient_1_#layers_1_127_one_hot":
+                                    mol_dgl_graph_q0.ndata["v"][:, -1] = 1
+                                    mol_dgl_graph_q0.edata["e"][:, -1] = 1
+                                    return mol_dgl_graph_q0
+
+                                elif arguments.name_final == "Hierarchical_Quotient_type_False_Both_False_Uni_Vert_False_#quotient_2_#layers_1_127_one_hot":
+                                    mol_dgl_graph_q1.ndata.pop('qn1')
+                                    mol_dgl_graph_q1.ndata.pop('qn2')
+                                    mol_dgl_graph_q1.edata.pop('qe1')
+                                    mol_dgl_graph_q1.edata.pop('qe2')  
+                                    return mol_dgl_graph_q1                     
 
 
                         """Replace global features NaN values with median (before making dataset)"""
@@ -357,8 +373,6 @@ for name_data in args.gen_names_data:
 
                         print("Seed ", seed, " is finished!")
 
-                        # if incorrect == True:
-                        #     os._exit(0)
                     else:
                         list_gen_seeds.append(seed)
                         print("Seed ", seed, " was generated before!")

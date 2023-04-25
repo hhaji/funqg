@@ -11,8 +11,8 @@ import torch
 import torch.nn as nn
 import random 
 import numpy as np
+from scipy.stats import gmean
 
-import arguments
 from gnn import GNN
 from utils import compute_score, loss_func 
 import copy
@@ -49,14 +49,15 @@ def train_ray_tune(config, train_dataloader, model, optimizer, device, task_type
         if max_norm_status:
             max_norm(model, max_norm_val=config.get("max_norm_val", 3))
    
-""" Trainable Class for Quasi-NVC """
+""" Trainable Class for Quasi-NCV """
 
 class TrainableCV(tune.Trainable):
     def setup(self, config=None, data=None, scaler=None, val_size=None, test_size=None,
            global_size=None, num_tasks=None, global_feature=None,
-                n_splits=None, batch_size=None, list_seeds=None,
+                num_splits=None, batch_size=None, list_seeds=None,
                 task_type=None, training_iteration=None, ray_tune=None,
-                scaler_regression=None, max_norm_status=None, atom_messages=None):
+                scaler_regression=None, max_norm_status=None, atom_messages=None,
+                dataset_metric=None):
         os.environ['PYTHONHASHSEED']=str(config.get("seed", 42))
         random.seed(config.get("seed", 42))
         np.random.seed(config.get("seed", 42))
@@ -70,7 +71,7 @@ class TrainableCV(tune.Trainable):
         self.global_size = global_size
         self.num_tasks = num_tasks
         self.global_feature = global_feature
-        self.n_splits = n_splits
+        self.num_splits = num_splits
         self.batch_size = batch_size
         self.list_seeds = list_seeds
         self.task_type = task_type
@@ -80,13 +81,14 @@ class TrainableCV(tune.Trainable):
         self.max_norm_status = max_norm_status
         self.atom_messages = atom_messages
         self.device = "cpu" 
+        self.dataset_metric = dataset_metric
         self.model = [GNN(config, self.global_size, self.num_tasks, self.global_feature, self.atom_messages)]
-        for fold_idx in range(1, self.n_splits):
+        for fold_idx in range(1, self.num_splits):
             self.model.append(copy.deepcopy(self.model[0]))
         if torch.cuda.is_available():
             self.device = "cuda:0"
             if torch.cuda.device_count() > 1:
-                for fold_idx in range(self.n_splits):
+                for fold_idx in range(self.num_splits):
                     self.model[fold_idx] = nn.DataParallel(self.model[fold_idx])
 
         self.model[0].to(self.device)
@@ -132,13 +134,13 @@ class TrainableCV(tune.Trainable):
 
         data_cross_validation={}
         seed = self.list_seeds[0]
-        for fold_idx in range(self.n_splits):
+        for fold_idx in range(self.num_splits):
             data_cross_validation[(seed, fold_idx, 1)],data_cross_validation[(seed, fold_idx, 2)],data_cross_validation[(seed, fold_idx, 3)]=\
             data[(seed, fold_idx, 1)],data[(seed, fold_idx, 2)], data[(seed, fold_idx, 3)]
             data[(seed, fold_idx, 1)], data[(seed, fold_idx, 2)], data[(seed, fold_idx, 3)]= loader_cv(seed, fold_idx) 
         ''''''
         self.train_dataloader, self.val_dataloader, self.test_dataloader = [data[(self.list_seeds[0], 0, 1)]], [data[(self.list_seeds[0], 0, 2)]], [data[(self.list_seeds[0], 0, 3)]]
-        for fold_idx in range(1, self.n_splits):
+        for fold_idx in range(1, self.num_splits):
             self.model[fold_idx].to(self.device)
             self.optimizer.append(torch.optim.Adam(self.model[fold_idx].parameters(), lr = round(config.get("lr", 0.0001),4)))
             self.optimizer[fold_idx].load_state_dict(self.optimizer[0].state_dict())
@@ -146,10 +148,10 @@ class TrainableCV(tune.Trainable):
             self.val_dataloader.append(data[(self.list_seeds[0], fold_idx, 2)])
             self.test_dataloader.append(data[(self.list_seeds[0], fold_idx, 3)])
         if self.task_type=="Classification":
-            self.best_val = [0 for i in range(self.n_splits)]
+            self.best_val = [0 for i in range(self.num_splits)]
             self.best_score = 0
         else:
-            self.best_val = [np.Inf for i in range(self.n_splits)]
+            self.best_val = [np.Inf for i in range(self.num_splits)]
             self.best_score = np.Inf            
         self.step_trial = 0
  
@@ -158,24 +160,25 @@ class TrainableCV(tune.Trainable):
         self.step_trial += 1
         val_dataloader = []
         if self.step_trial < self.training_iter:
-            for fold_idx in range(self.n_splits):
+            for fold_idx in range(self.num_splits):
                 val_dataloader.append(self.val_dataloader[fold_idx])
                 val_size = self.val_size
         else:
-            for fold_idx in range(self.n_splits):
+            for fold_idx in range(self.num_splits):
                 val_dataloader.append(self.test_dataloader[fold_idx])
                 val_size = self.test_size            
 
-        for fold_idx in range(self.n_splits):
+        for fold_idx in range(self.num_splits):
             train_ray_tune(self.config, self.train_dataloader[fold_idx], self.model[fold_idx], self.optimizer[fold_idx], self.device, self.task_type, self.num_tasks, self.max_norm_status)
             if self.task_type=="Classification":
-                score_val_fold = compute_score(self.model[fold_idx], val_dataloader[fold_idx], self.device, self.scaler, val_size, self.task_type, self.num_tasks, self.ray_tune, self.scaler_regression)
+                score_val_fold = compute_score(self.model[fold_idx], val_dataloader[fold_idx], self.device, self.scaler, val_size, self.task_type, self.num_tasks, self.ray_tune, self.scaler_regression, self.dataset_metric)
                 score_folds.append(score_val_fold)
             else:
-                score_val_fold = compute_score(self.model[fold_idx], val_dataloader[fold_idx], self.device, self.scaler[fold_idx], val_size, self.task_type, self.num_tasks, self.ray_tune, self.scaler_regression)
+                score_val_fold = compute_score(self.model[fold_idx], val_dataloader[fold_idx], self.device, self.scaler[fold_idx], val_size, self.task_type, self.num_tasks, self.ray_tune, self.scaler_regression, self.dataset_metric)
                 score_folds.append(score_val_fold)
 
         score_val = round(np.mean(score_folds),3)
+        # score_val_geom = round(gmean(score_folds),3)
         result = {"step": self.step_trial, "metric_ray": score_val}
         if self.step_trial < self.training_iter:
             if self.task_type=="Classification" and result["metric_ray"] >= self.best_score:
@@ -196,7 +199,7 @@ class TrainableCV(tune.Trainable):
         print("Save Checkpoint!")
         path = os.path.join(checkpoint_dir, "checkpoint.pth")
         dict_checkpoint = {"metric_ray": self.best_score}
-        for fold_idx in range(self.n_splits):
+        for fold_idx in range(self.num_splits):
             dict_checkpoint.update({"model_state_dict_{}".format(fold_idx): self.model[fold_idx].state_dict(),
                                     "optimizer_state_{}".format(fold_idx): self.optimizer[fold_idx].state_dict()})
         with open(path, "wb") as outputfile:
@@ -207,7 +210,7 @@ class TrainableCV(tune.Trainable):
         print("Load from Checkpoint!")
         with open(checkpoint_path, "rb") as inputfile:
             checkpoint = cloudpickle.load(inputfile)
-        for fold_idx in range(self.n_splits):
+        for fold_idx in range(self.num_splits):
             self.model[fold_idx].load_state_dict(checkpoint["model_state_dict_{}".format(fold_idx)])
             self.optimizer[fold_idx].load_state_dict(checkpoint["optimizer_state_{}".format(fold_idx)])
 

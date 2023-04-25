@@ -94,7 +94,6 @@ class GNN(nn.Module):
         concat = torch.cat((edges.src['h'],edges.data["e"]),1).float()
         return {'out' : concat}        
 
-    # def forward(self, mol_dgl_graph, globals):
     def forward(self, feat, graph, index_tasks=0, eweight=None):
         mol_dgl_graph=graph
         mol_dgl_graph.ndata['v']=feat

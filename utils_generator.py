@@ -38,10 +38,10 @@ class CanonicalBondFeaturizer(fs.BaseBondFeaturizer):
         super(CanonicalBondFeaturizer, self).__init__(
             featurizer_funcs={bond_data_field: fs.ConcatFeaturizer(
                 [
-                    fs.bond_type_one_hot,
-                    fs.bond_is_conjugated,
-                    fs.bond_is_in_ring,
-                    fs.bond_stereo_one_hot,
+                    fs.bond_type_one_hot, #0,1,2,3
+                    fs.bond_is_conjugated, #4
+                    fs.bond_is_in_ring, #5
+                    fs.bond_stereo_one_hot, #6,7,8,9,10,11
                 ])}, self_loop=self_loop)
 
 
@@ -506,8 +506,9 @@ def fgs_connections_idx(df, smiles, mol_dgl_graph):
     mol_dgl_graph.edata["edges_fgs"] = torch.zeros(mol_dgl_graph.num_edges(), 1)
     mol_dgl_graph.edata["edges_non_fgs"] = torch.zeros(mol_dgl_graph.num_edges(), 1)
     nodes_fgs =[]
-    if df[df["Smiles"] == smiles]["FGs"].squeeze() != []:
-        for fgs in df[df["Smiles"] == smiles]["FGs"].squeeze():
+    df_smiles_one_row = df[df["Smiles"] == smiles].iloc[[0]]
+    if df_smiles_one_row["FGs"].squeeze() != []:
+        for fgs in df_smiles_one_row["FGs"].squeeze():
             mol_dgl_sub_graph=dgl.node_subgraph(mol_dgl_graph, fgs)
             mol_dgl_graph.edata["edges_fgs"][mol_dgl_sub_graph.edata[dgl.EID].long()]=torch.ones(len(mol_dgl_sub_graph.edata[dgl.EID]), 1)
             nodes_fgs += fgs
@@ -867,4 +868,148 @@ class DatasetFreeSolv(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         return  self.smiles[idx], torch.tensor(self.labels[idx]).view(-1,1).float(), torch.Tensor(self.masks[idx]),  torch.tensor(self.global_feats[idx]).float()
+
+
+"""MUV dataset"""
+class DatasetMuv(torch.utils.data.Dataset):
+    def __init__(self, csv_address, path_global_csv):
+        # Read csv file, and fill in NaN values with 0
+        self.csv = pd.read_csv(csv_address).fillna(0) 
+        self.path_global_csv = pd.read_csv(path_global_csv)
+        
+        # Make masks for labels (0 as NaN value, and 1 as other values)
+        self.masks_csv = pd.read_csv(csv_address).replace({0: 1}).fillna(0)
+
+        # Split smiles, labels, and masks columns as lists
+        self.smiles = self.csv.iloc[:, 0]
+        self.labels = self.csv.iloc[:, 1:].values
+        self.masks = self.masks_csv.iloc[:, 1:].values
+
+        self.global_feats = self.path_global_csv.iloc[:, 1:].values
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        return  self.smiles[idx], torch.tensor(self.labels[idx]).float(), torch.tensor(self.masks[idx]).float(), torch.tensor(self.global_feats[idx]).float()
+
+
+"""hiv dataset"""
+class DatasetHiv(torch.utils.data.Dataset):
+    def __init__(self, csv_address, global_feats_csv):
+        self.csv = pd.read_csv(csv_address) 
+        self.global_feats_csv = pd.read_csv(global_feats_csv)
+
+        # Split smiles, labels, and masks columns as lists
+        self.smiles = self.csv.iloc[:, 0]
+        self.labels = self.csv.iloc[:, 1].values # for hiv dataset the second row is considered for labels
+        self.masks = torch.ones((len(self.smiles), 1))
+
+        self.global_feats = self.global_feats_csv.iloc[:,1:].values
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        return  self.smiles[idx], torch.tensor(self.labels[idx]).view(-1,1).float(), self.masks[idx],  torch.tensor(self.global_feats[idx]).float()
+
+
+"""QM7 dataset"""
+class DatasetQm7(torch.utils.data.Dataset):
+    def __init__(self, csv_address, global_feats_csv):
+        self.csv = pd.read_csv(csv_address) 
+        self.global_feats_csv = pd.read_csv(global_feats_csv)
+
+        # Split smiles, labels, and masks columns as lists
+        self.smiles = self.csv.iloc[:, 0]
+        self.labels = self.csv.iloc[:, 1].values
+        self.masks = torch.ones((len(self.smiles), 1))
+
+        self.global_feats = self.global_feats_csv.iloc[:, 1:].values
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        return  self.smiles[idx], torch.tensor(self.labels[idx]).view(-1,1).float(), torch.Tensor(self.masks[idx]),  torch.tensor(self.global_feats[idx]).float()      
+
+
+"""QM8 dataset"""
+class DatasetQm8(torch.utils.data.Dataset):
+    def __init__(self, csv_address, global_feats_csv):
+        self.csv = pd.read_csv(csv_address) 
+        self.global_feats_csv = pd.read_csv(global_feats_csv)
+
+        # Split smiles, labels, and masks columns as lists
+        self.smiles = self.csv.iloc[:, 0]
+        self.labels = self.csv.iloc[:, 1:].values  # QM8 has tweleve tasks start from index 1 
+        self.masks = torch.ones((len(self.smiles), 12))
+
+        self.global_feats = self.global_feats_csv.iloc[:,1:].values
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        return  self.smiles[idx], torch.tensor(self.labels[idx]).view(1,-1).float(), torch.Tensor(self.masks[idx]),  torch.tensor(self.global_feats[idx]).float()  
+
+
+"""Pdbbind_r dataset"""
+class DatasetPdbbind_r(torch.utils.data.Dataset):
+    def __init__(self, csv_address, global_feats_csv):
+        self.csv = pd.read_csv(csv_address) 
+        self.global_feats_csv = pd.read_csv(global_feats_csv)
+
+        # Split smiles, labels, and masks columns as lists
+        self.smiles = self.csv.iloc[:, 0]
+        self.labels = self.csv.iloc[:, 1].values
+        self.masks = torch.ones((len(self.smiles), 1))
+
+        self.global_feats = self.global_feats_csv.iloc[:,1:].values
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        return  self.smiles[idx], torch.tensor(self.labels[idx]).view(-1,1).float(), torch.Tensor(self.masks[idx]),  torch.tensor(self.global_feats[idx]).float()       
+
+
+"""Pdbbind_c dataset"""
+class DatasetPdbbind_c(torch.utils.data.Dataset):
+    def __init__(self, csv_address, global_feats_csv):
+        self.csv = pd.read_csv(csv_address) 
+        self.global_feats_csv = pd.read_csv(global_feats_csv)
+
+        # Split smiles, labels, and masks columns as lists
+        self.smiles = self.csv.iloc[:, 0]
+        self.labels = self.csv.iloc[:, 1].values
+        self.masks = torch.ones((len(self.smiles), 1))
+
+        self.global_feats = self.global_feats_csv.iloc[:,1:].values
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        return  self.smiles[idx], torch.tensor(self.labels[idx]).view(-1,1).float(), torch.Tensor(self.masks[idx]),  torch.tensor(self.global_feats[idx]).float()       
+
+
+"""Pdbbind_f dataset"""
+class DatasetPdbbind_f(torch.utils.data.Dataset):
+    def __init__(self, csv_address, global_feats_csv):
+        self.csv = pd.read_csv(csv_address) 
+        self.global_feats_csv = pd.read_csv(global_feats_csv)
+
+        # Split smiles, labels, and masks columns as lists
+        self.smiles = self.csv.iloc[:, 0]
+        self.labels = self.csv.iloc[:, 1].values
+        self.masks = torch.ones((len(self.smiles), 1))
+
+        self.global_feats = self.global_feats_csv.iloc[:,1:].values
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        return  self.smiles[idx], torch.tensor(self.labels[idx]).view(-1,1).float(), torch.Tensor(self.masks[idx]),  torch.tensor(self.global_feats[idx]).float()       
 

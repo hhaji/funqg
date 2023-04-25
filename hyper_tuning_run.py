@@ -1,5 +1,5 @@
 
-"""Hyperparameters Optimization with Ray Tune"""
+""" Hyperparameters Optimization with Ray Tune """
 
 import pandas as pd 
 from pandas import MultiIndex, Int16Dtype
@@ -25,10 +25,9 @@ from utils_tune import TrainableCV, scheduler_fn, search_alg_fn
 """ Set Path"""
 current_dir = args.current_dir
 results_ray = current_dir + "save_models/ray"
-os.makedirs(current_dir + "save_models/result_ray/" + args.name_data+"/"+args.division+\
-        "/Hierarchical_Quotient_type_False_Idx_Row_11/Both_False_Uni_Vert_False_#quotient_2_#layers_1", exist_ok=True)
-result_csv = current_dir + "save_models/result_ray/" + args.name_data+"/"+args.division+ \
-        "/Hierarchical_Quotient_type_False_Idx_Row_11/Both_False_Uni_Vert_False_#quotient_2_#layers_1/"+str(args.name_scheduler)+"_"+str(args.name_search_alg)+"_"+datetime.now().strftime("%Y%m%d")+".csv"
+os.makedirs(current_dir + "save_models/result_ray/" + args.name_data+"/"+args.division+"/"+arguments.name_final, exist_ok=True)
+result_csv = current_dir + "save_models/result_ray/" + args.name_data+"/"+args.division+"/"+arguments.name_final+"/"+\
+            str(args.name_scheduler)+"_"+str(args.name_search_alg)+"_"+datetime.now().strftime("%Y%m%d")+".csv"
 folder_data_temp = current_dir +"data_temp/"
 shutil.rmtree(folder_data_temp, ignore_errors=True) 
 
@@ -54,7 +53,7 @@ if arguments.task_type=="Classification":
     idx_all = list(np.arange(len(dataset)))
     idx_remained = idx_all
     fraction = 0.1
-    for fold_idx in range(args.n_splits):
+    for fold_idx in range(args.num_splits):
         idx_valid_fold = random.sample(idx_remained, int(fraction*len(dataset)))
         idx_remained = list(set(idx_remained)-set(idx_valid_fold))
         idx_test_fold = random.sample(idx_remained, int(fraction*len(dataset)))
@@ -106,7 +105,7 @@ else:
     idx_all = list(np.arange(len(dataset)))
     idx_remained = idx_all
     fraction = 0.1
-    for fold_idx in range(args.n_splits):
+    for fold_idx in range(args.num_splits):
         idx_valid_fold = random.sample(idx_remained, int(fraction*len(dataset)))
         idx_remained = list(set(idx_remained)-set(idx_valid_fold))
         idx_test_fold = random.sample(idx_remained, int(fraction*len(dataset)))
@@ -146,7 +145,7 @@ else:
 
 data={}
 seed = arguments.list_seeds[0]
-for fold_idx in range(args.n_splits):
+for fold_idx in range(args.num_splits):
     data[(seed, fold_idx, 1)], data[(seed, fold_idx, 2)], data[(seed, fold_idx, 3)]= data_cross_validation[(seed, fold_idx, 1)], data_cross_validation[(seed, fold_idx, 2)], data_cross_validation[(seed, fold_idx, 3)]
 
 """Hyperparameters tuning with Ray Tune"""
@@ -157,12 +156,12 @@ ray.shutdown()  # Restart Ray defensively in case the ray connection is lost.
 ray.init(num_cpus=args.num_cpus, num_gpus=args.num_gpus) 
 
 def main():
-    os.makedirs(results_ray+"/"+args.name_data+"/"+args.division+"/Hierarchical_Quotient_type_False_Idx_Row_11/Both_False_Uni_Vert_False_#quotient_2_#layers_1/", exist_ok=True)
-    storage_name =results_ray+"/"+args.name_data+"/"+args.division+"/Hierarchical_Quotient_type_False_Idx_Row_11/Both_False_Uni_Vert_False_#quotient_2_#layers_1/"+ \
-        str(args.name_scheduler)+"_"+str(args.name_search_alg)
+    os.makedirs(results_ray+"/"+args.name_data+"/"+args.division+"/"+arguments.name_final, exist_ok=True)
+    storage_name =results_ray+"/"+args.name_data+"/"+args.division+"/"+arguments.name_final+"/"+ \
+                  str(args.name_scheduler)+"_"+str(args.name_search_alg)
 
     config = {
-        "GNN_Layers": tune.quniform(0, 5, 1), 
+        "GNN_Layers": tune.quniform(1, 5, 1), 
         "dropout": tune.quniform(0.05, 0.40, 0.05),
         "dropout1": tune.quniform(0.05, 0.40, 0.05),
         "dropout2": tune.quniform(0.05, 0.40, 0.05), 
@@ -200,13 +199,10 @@ def main():
     '''
     # Get a dataframe for the last reported results of all of the trials
     df = analysis.results_df
-
     # Get a dataframe for the max accuracy seen for each trial
     df = analysis.dataframe(metric="mean_accuracy", mode="max")
-
     # Get a dict mapping {trial logdir -> dataframes} for all trials in the experiment.
     all_dataframes = analysis.trial_dataframes
-
     # Get a list of trials
     trials = analysis.trials
     '''
