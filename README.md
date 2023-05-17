@@ -1,4 +1,6 @@
-# FunQG: Molecular Representation Learning Via Quotient Graphs
+# FunQG: Molecular Representation Learning via Quotient Graphs
+
+This repository is related to the published article *FunQG: Molecular Representation Learning via Quotient Graphs* at Journal of Chemical Information and Modeling. The full text of the article can be accessible via this [link](https://pubs.acs.org/articlesonrequest/AOR-ZRUBKBRPKKWFEAFUHSMT).
 
 <div align="justify">
    
