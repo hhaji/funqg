@@ -95,5 +95,5 @@ usage: hyper_tuning_run.py [-h]
 - **Ali Hojatnia** - [alihojatnia](https://github.com/alihojatnia)
 
 ## Citation
-Hajiabolhassan, H., Taheri, Z., Hojatnia, A., & Yeganeh, Y. T. (2022). FunQG: Molecular Representation Learning Via Quotient Graphs. arXiv. https://doi.org/10.48550/arXiv.2207.08597
+Hossein Hajiabolhassan*, Zahra Taheri*, Ali Hojatnia, and Yavar Taheri Yeganeh, *FunQG: Molecular Representation Learning via Quotient Graphs*, Journal of Chemical Information and Modeling Article ASAP [DOI: 10.1021/acs.jcim.3c00445](https://doi.org/10.1021/acs.jcim.3c00445) 
 
