@@ -1,4 +1,5 @@
 
+
 """ Hyperparameters Optimization with Ray Tune """
 
 import pandas as pd 
@@ -178,11 +179,11 @@ def main():
         search_alg = ConcurrencyLimiter(search_alg, max_concurrent=args.max_concurrent)
    
     analysis=tune.run(tune.with_parameters(TrainableCV, data=data, scaler=scaler, val_size=val_size, test_size=test_size,
-                global_size=arguments.global_size, num_tasks=arguments.num_tasks, global_feature=args.global_feature,
-                num_splits=args.num_splits, batch_size=args.batch_size, list_seeds=arguments.list_seeds,
-                task_type=arguments.task_type, training_iteration=args.training_iteration, ray_tune=arguments.ray_tune,
-                scaler_regression=args.scaler_regression, max_norm_status=args.max_norm_status,
-                atom_messages=args.atom_messages),
+                    global_size=arguments.global_size, num_tasks=arguments.num_tasks, global_feature=args.global_feature,
+                    num_splits=args.num_splits, batch_size=args.batch_size, list_seeds=arguments.list_seeds,
+                    task_type=arguments.task_type, training_iteration=args.training_iteration, ray_tune=arguments.ray_tune,
+                    scaler_regression=args.scaler_regression, max_norm_status=args.max_norm_status,
+                    atom_messages=args.atom_messages, dataset_metric=arguments.dataset_metric),
                     local_dir= storage_name,
                     scheduler=scheduler,
                     search_alg=search_alg,
@@ -193,9 +194,9 @@ def main():
                     checkpoint_freq=0,
                     keep_checkpoints_num=1,
                     checkpoint_at_end=True,
-                    resources_per_trial=PlacementGroupFactory([{"CPU": 1, "GPU": 0}]),
+                    resources_per_trial={"cpu": 1, "gpu": 0},
                     stop={"training_iteration": args.training_iteration},
-                    )    
+                    )      
     '''
     # Get a dataframe for the last reported results of all of the trials
     df = analysis.results_df
