@@ -120,7 +120,7 @@ for name_data in args.gen_names_data:
             are_graphs_generated = False
 
             # specific settings for this scenario
-            dataset_name = dataset_names[name]
+            dataset_name = dataset_names[name_data]
 
             # """ Load csv of the specific graph generator"""
             # save_csv = current_dir + "data/graph/"
